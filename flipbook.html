@@ -1,161 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Day the Clouds Opened — Flipbook Test</title>
-
-<style>
-  :root { --ink:#111; --muted:#6b7280; --line:#e5e7eb; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:#fff; }
-  header, footer { border-bottom:1px solid var(--line); }
-  .wrap { max-width: 1100px; margin:0 auto; padding:16px; }
-  h1 { margin:0; font-size:22px; }
-  .bar { display:flex; align-items:center; gap:12px; justify-content:space-between; }
-  .note { color:var(--muted); font-size:12px; }
-  .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  button, a.btn {
-    border:1px solid var(--line); background:#fff; color:var(--ink);
-    padding:8px 12px; border-radius:12px; font-weight:600; cursor:pointer; text-decoration:none;
-  }
-  button:hover, a.btn:hover { background:#f8f9fb; }
-  #stage {
-    border:1px solid var(--line); border-radius:16px; background:#fff;
-    padding:8px; overflow:hidden;
-  }
-  #flipbook {
-    width: 960px;
-    height: 600px;
-    margin: 0 auto;
-    box-shadow: 0 6px 32px rgba(0,0,0,.08);
-    background: #fff;
-  }
-  #flipbook .page { background:white; }
-  #loader {
-    display:flex; align-items:center; justify-content:center;
-    height: 260px; color:var(--muted); font-size:14px;
-  }
-  .spn {
-    width:10px;height:10px;border-radius:999px;background:#d1d5db;margin-left:8px;
-    animation: pulse 1s infinite alternate;
-  }
-  @keyframes pulse { to { transform:scale(1.6); background:#9ca3af; } }
-  .spread { display:flex; align-items:center; gap:8px; }
-</style>
-
-<!-- jQuery + Turn.js (flip effect) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
-
-<!-- PDF.js (render PDF pages into images) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Day the Clouds Opened | Flipbook</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f4f4f4; }
+    iframe { width:100%; height:100vh; border:none; }
+    .note { text-align:center; padding:15px; background:#fff; font-size:14px; }
+    a { color:#0066cc; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+  </style>
 </head>
-
 <body>
-<header>
-  <div class="wrap bar">
-    <h1>Flipbook Preview — The Day the Clouds Opened</h1>
-    <div class="controls">
-      <a class="btn" href="./index.html">← Back to scroll version</a>
-      <a class="btn" href="./The_Day_The_Clouds_Opened_FINAL_DEPOSIT.pdf" target="_blank" rel="noreferrer">🖨️💾 Open PDF in new tab</a>
-    </div>
+  <iframe src="The_Day_The_Clouds_Opened_FINAL_DEPOSIT.pdf"></iframe>
+  <div class="note">
+    📖 This flipbook shows the official FINAL DEPOSIT file by Harry G. Wright.<br>
+    If it does not load, <a href="The_Day_The_Clouds_Opened_FINAL_DEPOSIT.pdf" target="_blank">click here to open the PDF</a>.
   </div>
-</header>
-
-<main class="wrap" style="padding-top:10px;">
-  <div class="note">This test uses the exact FINAL DEPOSIT file. Pages are rendered in your browser; first load may take a moment.</div>
-  <div id="stage" style="margin-top:10px;">
-    <div id="loader">Preparing flipbook<span class="spn"></span></div>
-    <div id="flipbook" style="display:none;"></div>
-  </div>
-  <div class="controls" style="justify-content:center; margin-top:12px;">
-    <button id="prev">⟵ Previous</button>
-    <div class="spread"><span class="note">Page:</span> <strong id="pnum">1</strong></div>
-    <button id="next">Next ⟶</button>
-  </div>
-</main>
-
-<footer>
-  <div class="wrap" style="padding:14px 0;">
-    <span class="note">© <script>document.write(new Date().getFullYear())</script> Harry G. Wright — Private family preview.</span>
-  </div>
-</footer>
-
-<script>
-(async function () {
-  const PDF_PATH = "./The_Day_The_Clouds_Opened_FINAL_DEPOSIT.pdf";
-
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-  const pdf = await pdfjsLib.getDocument(PDF_PATH).promise;
-
-  const imgs = [];
-  let firstWidth = 960, firstHeight = 1280;
-
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const viewport = page.getViewport({ scale: 1.5 });
-    if (p === 1) { firstWidth = viewport.width; firstHeight = viewport.height; }
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    const url = canvas.toDataURL("image/jpeg", 0.95);
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "page";
-    const img = document.createElement("img");
-    img.src = url;
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "contain";
-    wrapper.appendChild(img);
-    imgs.push(wrapper);
-  }
-
-  const flip = document.getElementById("flipbook");
-  imgs.forEach(el => flip.appendChild(el));
-
-  function initTurn() {
-    const isWide = window.innerWidth > 1000;
-    const pageW = Math.min(960, firstWidth);
-    const pageH = Math.min(1280, firstHeight);
-    const bookW = isWide ? pageW * 2 : pageW;
-    const bookH = pageH;
-
-    $("#flipbook").turn({
-      width: bookW,
-      height: bookH,
-      autoCenter: true,
-      gradients: true,
-      elevation: 50
-    });
-
-    document.getElementById("loader").style.display = "none";
-    flip.style.display = "block";
-    updatePageNumber();
-  }
-
-  function updatePageNumber(){
-    const page = $("#flipbook").turn("page");
-    document.getElementById("pnum").textContent = page;
-  }
-
-  $("#prev").on("click", () => $("#flipbook").turn("previous"));
-  $("#next").on("click", () => $("#flipbook").turn("next"));
-  $("#flipbook").bind("turned", updatePageNumber);
-
-  initTurn();
-  window.addEventListener("resize", () => {
-    try { $("#flipbook").turn("destroy").removeAttr("style"); } catch(e){}
-    initTurn();
-  });
-})();
-</script>
 </body>
 </html>
